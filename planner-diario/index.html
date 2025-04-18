@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planner Diário</title>
+    <style>
+      body {
+        font-family: "Segoe UI", cursive;
+        background-image: url("https://i.pinimg.com/originals/6d/80/2f/6d802ffd14b32795b4deb0b886a7815a.gif");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        padding: 20px;
+        color: #ffffff;
+      }
+
+      h1 {
+        text-align: center;
+        font-family: "Georgia", cursive;
+        margin-bottom: 20px;
+      }
+
+      .day {
+        margin-bottom: 20px;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.4);
+      }
+
+      .day h2 {
+        font-kerning: "Brush Script MT", cursive;
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #39393b;
+      }
+
+      .task {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+
+      .task input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-right: 10px;
+        cursor: pointer;
+      }
+
+      .task input[type="text"] {
+        flex: 1;
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      .add-btn {
+        margin-top: 5px;
+        padding: 5px 10px;
+        background-color: #000000;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .add-btn:hover {
+        background-color: #ff0000;
+      }
+
+      .delete-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        margin-left: 10px;
+      }
+
+      .delete-btn:hover {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Meu Planner Diário</h1>
+
+    <div id="planner"></div>
+
+    <script>
+      const dias = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+      const planner = document.getElementById('planner');
+
+      dias.forEach(dia => {
+        const container = document.createElement('div');
+        container.className = 'day';
+
+        const titulo = document.createElement('h2');
+        titulo.textContent = dia;
+        container.appendChild(titulo);
+
+        const lista = document.createElement('div');
+        lista.className = 'task-list';
+        container.appendChild(lista);
+
+        const botao = document.createElement('button');
+        botao.textContent = '+ Adicionar tarefa';
+        botao.className = 'add-btn';
+        botao.onclick = () => {
+          const tarefa = document.createElement('div');
+          tarefa.className = 'task';
+
+          const check = document.createElement('input');
+          check.type = 'checkbox';
+          check.onchange = salvarTarefas;
+          tarefa.appendChild(check);
+
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'Escreva sua tarefa...';
+          input.oninput = salvarTarefas;
+          tarefa.appendChild(input);
+
+          const deletar = document.createElement('button');
+          deletar.textContent = '🗑️';
+          deletar.className = 'delete-btn';
+          deletar.onclick = () => {
+            tarefa.remove();
+            salvarTarefas();
+          };
+          tarefa.appendChild(deletar);
+
+          lista.appendChild(tarefa);
+          salvarTarefas();
+        };
+
+        container.appendChild(botao);
+        planner.appendChild(container);
+      });
+
+      function salvarTarefas() {
+        const dados = {};
+        document.querySelectorAll('.day').forEach(day => {
+          const dia = day.querySelector('h2').textContent;
+          const tarefas = Array.from(day.querySelectorAll('.task')).map(task => {
+            return {
+              texto: task.querySelector('input[type="text"]').value,
+              feito: task.querySelector('input[type="checkbox"]').checked
+            };
+          });
+          dados[dia] = tarefas;
+        });
+        localStorage.setItem('planner', JSON.stringify(dados));
+      }
+
+      function carregarTarefas() {
+        const dadosSalvos = JSON.parse(localStorage.getItem('planner'));
+        if (!dadosSalvos) return;
+
+        document.querySelectorAll('.day').forEach(day => {
+          const dia = day.querySelector('h2').textContent;
+          const lista = day.querySelector('.task-list');
+          lista.innerHTML = '';
+
+          (dadosSalvos[dia] || []).forEach(tarefa => {
+            const div = document.createElement('div');
+            div.className = 'task';
+
+            const check = document.createElement('input');
+            check.type = 'checkbox';
+            check.checked = tarefa.feito;
+            check.onchange = salvarTarefas;
+            div.appendChild(check);
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = tarefa.texto;
+            input.oninput = salvarTarefas;
+            div.appendChild(input);
+
+            const deletar = document.createElement('button');
+            deletar.textContent = '🗑️';
+            deletar.className = 'delete-btn';
+            deletar.onclick = () => {
+              div.remove();
+              salvarTarefas();
+            };
+            div.appendChild(deletar);
+
+            lista.appendChild(div);
+          });
+        });
+      }
+
+      carregarTarefas();
+    </script>
+  </body>
+</html>
+
